@@ -41,7 +41,10 @@ namespace BlogApi.Controllers
                     Complexity = t.Complexity,
                     MinDescription = t.MinDescription,
                     TimeReading = t.TimeReading,
-                    Views = t.Views
+                    Views = t.Views,
+                    Date = t.Date,
+
+                    UserFullName = t.User.FullName,
                 }).ToList()
 
             }).ToListAsync();
@@ -69,7 +72,10 @@ namespace BlogApi.Controllers
                     Complexity = t.Complexity,
                     MinDescription = t.MinDescription,
                     TimeReading = t.TimeReading,
-                    Views = t.Views
+                    Views = t.Views,
+                    Date = t.Date,
+
+                    UserFullName = t.User.FullName,
                 }).ToList()
 
             }).SingleOrDefault(t => t.Id == id);

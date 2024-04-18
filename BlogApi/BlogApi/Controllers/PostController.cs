@@ -1,11 +1,14 @@
 ﻿using BlogApi.DataAccess;
 using BlogApi.Entities;
+using BlogApi.Enums;
+using BlogApi.Extensions;
 using BlogApi.Models.Post;
 using BlogApi.Models.Section;
 using BlogApi.Models.Tag;
 using BlogApi.Models.User;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace BlogApi.Controllers
 {
@@ -25,40 +28,64 @@ namespace BlogApi.Controllers
         /// </summary>
         /// <returns>Возвращает список всех постов</returns>
         [HttpGet]
-        public async Task<List<PostDto>> GetPosts()
+        public async Task<PaginationPostDto> GetPosts(int? userId, int page, int count, DateFilter dateFilter = DateFilter.All)
         {
-            return await _context.Posts.Include(p => p.User).Select(p => new PostDto()
+
+            var query = _context.Posts.Include(p => p.User).AsQueryable();
+
+            if (userId != null)
             {
-                Id = p.Id,
-                Title = p.Title,
-                UserFullName = p.User.FullName,
-                Description = p.Description,
-                Complexity = p.Complexity,
-                MinDescription = p.MinDescription,
-                TimeReading = p.TimeReading,
-                Views = p.Views,
-                SectionName = p.Section.Name,
+                query = query.Where(p => p.UserId == userId);
+            }
 
-                Section = new SectionDto()
+            var dateRange = _dateRangeDictionary[dateFilter];
+            if (dateRange.Start != null)
+                query = query.Where(p => p.Date >= dateRange.Start);
+
+            var totalPosts = await query.CountAsync();
+
+            var posts = await query.OrderBy(p => p.Date)
+                .Select(p => new PostDto()
                 {
-                    Name = p.Section.Name,
-                    Code = p.Section.Code
-                },
+                    Id = p.Id,
+                    Title = p.Title,
+                    UserFullName = p.User.FullName,
+                    Description = p.Description,
+                    Complexity = p.Complexity,
+                    MinDescription = p.MinDescription,
+                    TimeReading = p.TimeReading,
+                    Views = p.Views,
+                    SectionName = p.Section.Name,
+                    Date = p.Date,
 
-                User = new UserDto()
-                {
-                    FullName = p.User.FullName,
-                    Email = p.User.Email,
-                },
+                    Section = new SectionDto()
+                    {
+                        Name = p.Section.Name,
+                        Code = p.Section.Code
+                    },
 
-                Tags = p.Tags.Select(t => new TagDto
-                {
-                    Id = t.Id,
-                    Name = t.Name,
-                    Code = t.Code
-                }).ToList()
+                    User = new UserDto()
+                    {
+                        FullName = p.User.FullName,
+                        Email = p.User.Email,
+                    },
 
-            }).ToListAsync();
+                    Tags = p.Tags.Select(t => new TagDto
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        Code = t.Code
+                    }).ToList()
+
+                })
+                .Pagination(page, count)
+                .ToListAsync();
+
+            return new PaginationPostDto
+            {
+                PostsDto = posts,
+                TotalPosts = totalPosts
+            };
         }
 
         /// <summary>
@@ -80,6 +107,7 @@ namespace BlogApi.Controllers
                 TimeReading = p.TimeReading,
                 Views = p.Views,
                 SectionName = p.Section.Name,
+                Date = p.Date,
 
                 Section = new SectionDto()
                 {
@@ -120,6 +148,7 @@ namespace BlogApi.Controllers
                 Complexity = post.Complexity,
                 TimeReading = post.TimeReading,
                 Views = post.Views,
+                Date = post.Date,
 
                 UserId = post.UserId,
                 SectionId = post.SectionId
@@ -154,6 +183,7 @@ namespace BlogApi.Controllers
             currentPost.TimeReading = post.TimeReading;
             currentPost.UserId = post.UserId;
             currentPost.SectionId = post.SectionId;
+            currentPost.Date = post.Date;
 
             if (post.Tags.Count() > 0)
                 currentPost.Tags = await _context.Tags.Where(t => post.Tags.Contains(t.Id)).ToListAsync();
@@ -182,5 +212,62 @@ namespace BlogApi.Controllers
 
             return NoContent();
         }
+
+        private Dictionary<DateFilter, DateRange> _dateRangeDictionary = new Dictionary<DateFilter, DateRange>()
+        {
+            {
+                DateFilter.Day,
+                new DateRange {
+                    Start = DateTime.Today
+                }
+            },
+            {
+                DateFilter.Week,
+                new DateRange {
+                    Start = DateTime.Today.AddDays(((int)DateTime.Today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7)
+                }
+            },
+            {
+                DateFilter.Month,
+                new DateRange {
+                    Start = DateTime.Parse($"1/{DateTime.Today.Month}")
+                }
+            },
+            //TODO: на дом
+            {
+                DateFilter.ThreeMonth,
+                new DateRange {
+                    Start = DateTime.Parse($"1/{DateTime.Today.Month - 3}")
+                }
+            },
+            {
+                DateFilter.SixMonths,
+                new DateRange {
+                    Start = DateTime.Parse($"1/{DateTime.Today.Month}")
+                }
+            },
+            // --
+            {
+                DateFilter.Year,
+                new DateRange {
+                    Start = DateTime.Parse($"1/1/{DateTime.Today.Year}")
+                }
+            },
+            {
+                DateFilter.All,
+                new DateRange {
+                    Start = null,
+                    End = null
+                }
+            }
+        };
+    }
+
+    class DateRange
+    {
+        public DateTime? Start { get; set; }
+
+        public DateTime? End { get; set; } = DateTime.Today;
     }
 }
+

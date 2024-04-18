@@ -36,6 +36,11 @@
         public string Complexity { get; set; }
 
         /// <summary>
+        /// Дата публикации поста
+        /// </summary>
+        public DateTime Date { get; set; }
+
+        /// <summary>
         /// Идентификатор автора поста
         /// </summary>
         public int UserId { get; set; }

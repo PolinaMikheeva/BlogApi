@@ -1,9 +1,11 @@
-﻿using BlogApi.DataAccess;
+﻿using Azure;
+using BlogApi.DataAccess;
 using BlogApi.Entities;
 using BlogApi.Models.Post;
 using BlogApi.Models.Tag;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace BlogApi.Controllers
 {
@@ -25,6 +27,8 @@ namespace BlogApi.Controllers
         [HttpGet]
         public async Task<List<TagDto>> GetTags()
         {
+
+
             return await _context.Tags.Select(p => new TagDto()
             {
                 Id = p.Id,
@@ -39,7 +43,11 @@ namespace BlogApi.Controllers
                     Complexity = t.Complexity,
                     MinDescription = t.MinDescription,
                     TimeReading = t.TimeReading,
-                    Views = t.Views
+                    Views = t.Views,
+                    Date = t.Date,
+
+                    UserFullName = t.User.FullName,
+                    SectionName = t.Section.Name
                 }).ToList()
 
             }).ToListAsync();
@@ -59,16 +67,20 @@ namespace BlogApi.Controllers
                 Name = p.Name,
                 Code = p.Code,
 
-                Posts = p.Posts.Select(t => new PostDto
-                {
-                    Id = t.Id,
-                    Title = t.Title,
-                    Description = t.Description,
-                    Complexity = t.Complexity,
-                    MinDescription = t.MinDescription,
-                    TimeReading = t.TimeReading,
-                    Views = t.Views
-                }).ToList()
+               Posts = p.Posts.Select(t => new PostDto
+               {
+                   Id = t.Id,
+                   Title = t.Title,
+                   Description = t.Description,
+                   Complexity = t.Complexity,
+                   MinDescription = t.MinDescription,
+                   TimeReading = t.TimeReading,
+                   Views = t.Views,
+                   Date = t.Date,
+                   
+                   UserFullName = t.User.FullName,
+                   SectionName = t.Section.Name
+               }).ToList()
 
             }).SingleOrDefault(t => t.Id == id);
             return tag;

@@ -45,6 +45,11 @@ namespace BlogApi.Entities
         public string Complexity { get; set; }
 
         /// <summary>
+        /// Дата публикации поста
+        /// </summary>
+        public DateTime Date { get; set; }
+
+        /// <summary>
         /// Автор поста
         /// </summary>
         public int UserId { get; set; }
