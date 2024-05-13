@@ -2,13 +2,13 @@
 using BlogApi.Entities;
 using BlogApi.Enums;
 using BlogApi.Extensions;
+using BlogApi.MappingService;
 using BlogApi.Models.Post;
 using BlogApi.Models.Section;
 using BlogApi.Models.Tag;
 using BlogApi.Models.User;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace BlogApi.Controllers
 {
@@ -44,6 +44,9 @@ namespace BlogApi.Controllers
 
             var totalPosts = await query.CountAsync();
 
+            //var mapper = new Mapper();
+            //var postMap = mapper.Map<Post, PostDto>((Post)query);
+
             var posts = await query.OrderBy(p => p.Date)
                 .Select(p => new PostDto()
                 {
@@ -57,26 +60,26 @@ namespace BlogApi.Controllers
                     Views = p.Views,
                     SectionName = p.Section.Name,
                     Date = p.Date,
-
+                
                     Section = new SectionDto()
                     {
                         Name = p.Section.Name,
                         Code = p.Section.Code
                     },
-
+                
                     User = new UserDto()
                     {
                         FullName = p.User.FullName,
                         Email = p.User.Email,
                     },
-
+                
                     Tags = p.Tags.Select(t => new TagDto
                     {
                         Id = t.Id,
                         Name = t.Name,
                         Code = t.Code
                     }).ToList()
-
+                
                 })
                 .Pagination(page, count)
                 .ToListAsync();
@@ -88,14 +91,53 @@ namespace BlogApi.Controllers
             };
         }
 
+        
         /// <summary>
         /// Метод для получения поста по идентификатору
         /// </summary>
         /// <param name="id">Идентификатор поста</param>
         /// <returns>Возвращает один пост</returns>
+        
         [HttpGet("{id}")]
         public async Task<PostDto> GetPostById([FromRoute] int id)
         {
+            //var post = _context.Posts.ToList().SingleOrDefault();
+        
+            /*
+            var mapper = new Mapper();
+            var postMap = mapper.Map<Post, PostDto>(post);
+        
+            postMap.Id = id;
+            postMap.Title = post.Title;
+            postMap.UserFullName = post.User.FullName;
+            postMap.Description = post.Description;
+            postMap.Complexity = post.Complexity;
+            postMap.MinDescription = post.MinDescription;
+            postMap.TimeReading = post.TimeReading;
+            postMap.Views = post.Views;
+            postMap.SectionName = post.Section.Name;
+            postMap.Date = post.Date;
+        
+            postMap.Section = new SectionDto()
+            {
+                Name = post.Section.Name,
+                Code = post.Section.Code
+            };
+        
+            postMap.User = new UserDto()
+            {
+                FullName = post.User.FullName,
+                Email = post.User.Email,
+            };
+            
+            postMap.Tags = post.Tags.Select(t => new TagDto
+            {
+                Id = t.Id,
+                Name = t.Name,
+                Code = t.Code
+            }).ToList();
+            */
+        
             PostDto? post = _context.Posts.Include(t => t.Tags).Select(p => new PostDto()
             {
                 Id = p.Id,
@@ -108,29 +150,33 @@ namespace BlogApi.Controllers
                 Views = p.Views,
                 SectionName = p.Section.Name,
                 Date = p.Date,
-
+            
                 Section = new SectionDto()
                 {
                     Name = p.Section.Name,
                     Code = p.Section.Code
                 },
-
+            
                 User = new UserDto()
                 {
                     FullName = p.User.FullName,
                     Email = p.User.Email,
                 },
-
+            
                 Tags = p.Tags.Select(t => new TagDto
                 {
                     Id = t.Id,
                     Name = t.Name,
                     Code = t.Code
                 }).ToList()
-
+            
             }).FirstOrDefault(post => post.Id == id);
+            
+
             return post;
         }
+    
+
 
         /// <summary>
         /// Метод для создания поста
@@ -237,13 +283,13 @@ namespace BlogApi.Controllers
             {
                 DateFilter.ThreeMonth,
                 new DateRange {
-                    Start = DateTime.Parse($"1/{DateTime.Today.Month - 3}")
+                    Start = DateTime.Today.AddMonths(-3).AddDays(1 - DateTime.Today.Day),
                 }
             },
             {
                 DateFilter.SixMonths,
                 new DateRange {
-                    Start = DateTime.Parse($"1/{DateTime.Today.Month}")
+                    Start = DateTime.Today.AddMonths(-6).AddDays(1 - DateTime.Today.Day),
                 }
             },
             // --

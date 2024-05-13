@@ -1,4 +1,8 @@
 using BlogApi.DataAccess;
+using BlogApi.Logging;
+using BlogApi.Logging.Headers;
+using BlogApi.Logging.Requests;
+using BlogApi.Logging.Responses;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +25,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+/*
+app.UseLogHeaders();
+app.UseRequestLogging();
+app.UseResponseLogging();
+*/
+app.UseLogger();
 
 app.UseHttpsRedirection();
 
