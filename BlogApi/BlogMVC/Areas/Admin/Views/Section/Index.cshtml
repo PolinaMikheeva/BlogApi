@@ -1,0 +1,99 @@
+﻿@using BlogMVC.Areas.Admin.Models.Section
+@model List<SectionFetchVM>
+@{
+    ViewData["Title"] = "Admin";
+    Layout = "~/Views/Shared/_Admin.cshtml";
+}
+
+<div class="px-3">
+
+    <!-- Start Content-->
+    <div class="container-fluid">
+
+        <!-- start page title -->
+        <div class="py-3 py-lg-4">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h4 class="page-title mb-0">Datatables</h4>
+                </div>
+                <div class="col-lg-6">
+                    <div class="d-none d-lg-block">
+                        <ol class="breadcrumb m-0 float-end">
+                            <li class="breadcrumb-item"><a href="javascript: void(0);">Tables</a></li>
+                            <li class="breadcrumb-item active">Datatables</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end page title -->
+
+        <!-- Start input -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post">
+                            <div class="mb-2">
+                                <label class="form-label">Code</label>
+                                <input name="code" type="text" class="form-control" placeholder="English">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Name</label>
+                                <input name="name" type="text" class="form-control" placeholder="Russian">
+                            </div>
+                            <button type="submit" class="btn btn-primary" asp-action="Add" asp-controller="Section">Add Section</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End input -->
+
+        <!-- Start Data -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="header-title">Sections</h4>
+
+                        <table id="basic-datatable" class="table dt-responsive nowrap w-100">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+
+                            <tbody>
+                                @foreach(var sec in Model)
+                                {
+                                    <tr>
+                                        <td>@sec.Id</td>
+                                        <td>@sec.Code</td>
+                                        <td>@sec.Name</td>
+                                        <td>
+                                            <a class="btn btn-primary" asp-controller="Section" asp-action="Edit" asp-route-id="@sec.Id">Edit</a>
+                                            <form method="post" asp-action="Delete">
+                                                <input type="hidden" name="id" value="@sec.Id" />
+                                                <button type="submit" class="btn btn-primary">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                } 
+                            </tbody>
+                        </table>
+                    </div> <!-- end card body-->
+                </div> <!-- end card -->
+            </div><!-- end col-->
+        </div>
+        <!-- end row-->
+
+
+    </div> <!-- container -->
+
+</div> <!-- content -->
+            
